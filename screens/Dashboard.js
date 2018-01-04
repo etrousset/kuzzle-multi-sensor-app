@@ -32,7 +32,12 @@ export default class Dashboard extends Component {
     super(props)
     this.state = {
       kuzzle_conn: KUZZLE_CONN_STATE.DISCONNECTED,
-      btn_state: {},
+      btn_state: {
+        button_0 : "RELEASED",
+        button_1 : "RELEASED",
+        button_2 : "RELEASED",
+        button_3 : "RELEASED",
+      },
       my_devices: [],
       rfid_tags: [],
       rgb_light: {},
@@ -188,6 +193,47 @@ export default class Dashboard extends Component {
       })
   }
 
+  buttons_publish_state(btn, device_id) {
+    
+    this.state.btn_state['button_' + btn] = "PRESSED"
+
+    var device_state = {
+      partial_state: true,
+      device_id,
+      state: this.state.btn_state  
+    }
+
+    this.kuzzle.collection('device-state')
+      .createDocument(device_state, (err, res) => {
+        if (err)
+          console.log(err)
+        else
+          console.log('Document published')
+
+        console.log(res);
+      })
+
+      setTimeout(() => {
+      this.state.btn_state['button_' + btn] = "RELEASED"
+
+      var device_state = {
+        partial_state: true,
+        device_id,
+        state: this.state.btn_state  
+      }
+  
+      this.kuzzle.collection('device-state')
+        .createDocument(device_state, (err, res) => {
+          if (err)
+            console.log(err)
+          else
+            console.log('Document published')
+  
+          console.log(res);
+        })
+      }, 250)
+  }
+
   get_button_style(btn_num) {
     return [
       dashboard_styles.button,
@@ -209,20 +255,19 @@ export default class Dashboard extends Component {
     return (
       <View style={[styles.framed, dashboard_styles.device]}>
         <Text style={[styles.card_header, dashboard_styles.headers]}>{item.title}</Text>
-        <View style={this.get_button_style(0)}>
+        <TouchableOpacity style={this.get_button_style(0)} onPress={() => this.buttons_publish_state(0, item.device_id)}>
           <Text style={dashboard_styles.button_text}>Btn 0</Text>
-        </View>
-        <View style={this.get_button_style(1)}>
+        </TouchableOpacity>
+        <TouchableOpacity style={this.get_button_style(1)} onPress={() => this.buttons_publish_state(1, item.device_id)}>
           <Text style={dashboard_styles.button_text}>Btn 1</Text>
-        </View>
-        <View style={this.get_button_style(2)}>
+        </TouchableOpacity>
+        <TouchableOpacity style={this.get_button_style(2)} onPress={() => this.buttons_publish_state(2, item.device_id)}>
           <Text style={dashboard_styles.button_text}>Btn 2</Text>
-        </View>
-        <View style={this.get_button_style(3)}>
+        </TouchableOpacity>
+        <TouchableOpacity style={this.get_button_style(3)} onPress={() => this.buttons_publish_state(3, item.device_id)}>
           <Text style={dashboard_styles.button_text}>Btn 3</Text>
-        </View>
+        </TouchableOpacity>
       </View>
-
     )
   }
 
